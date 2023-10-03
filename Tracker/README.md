@@ -1,3 +1,10 @@
+---DISCLAIMER---
+1-Download this script
+2-Login to Instagram in Firefox
+3-Execute the snippet, e.g. with python 615_import_firefox_session.py
+4-save the path to cookie captured and insert them in the program (when prompted to)
+
+
 # Tracker 👻
 Tracker is a python script which keeps track the followers and/or the followings of a user.
 
