@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Author: new92
+Contributor : Itsfizziks
 Github: @new92
 Leetcode: @new92
 
@@ -139,6 +140,7 @@ def ScriptInfo():
     fp = os.path.exists(fpath(f)) if not fpath(f) == None else None
     fsize = 0 if fp == None else os.stat(fpath(f)).st_size
     print(f"{YELLOW}[+] Author: {conf['author']}")
+    print(f"{YELLOW}[+] Contributors : Itsfizziks")
     print(f"{YELLOW}[+] Github: @{conf['author']}")
     print(f"{YELLOW}[+] Leetcode: @{conf['author']}")
     print(f"{YELLOW}[+] License: {conf['lice']}")
@@ -173,11 +175,23 @@ def checkUser(username:str) -> bool:
 def valUser(username: str) -> bool:
     return requests.get(f'https://www.instagram.com/{username}/', allow_redirects=False).status_code != 200
 
+def is_session_file_valid(session_file_path: str) -> bool:
+    return os.path.exists(session_file_path)
+
+def extract_text_after_session(raw_path):
+    index = raw_path.find('session-')
+    if index != -1:
+        username = raw_path[index + len('session-'):]
+        return username
+    else:
+        return None  # Return None if 'session-' is not found
+
 def main():
     print(logo())
     print("\n")
     print(f"{YELLOW} [-] -- Socials --")
     print(f"{YELLOW}[+] Author: new92")
+    print(f"{YELLOW}[+] Contributors: Itsfizziks")
     print(f"{YELLOW}[+] Github: @new92")
     print(f"{YELLOW}[+] Leetcode: @new92")
     print("\n")
@@ -188,6 +202,7 @@ def main():
     print(f"{YELLOW}[3] Uninstall Tracker")
     print(f"{YELLOW}[4] Exit")
     num=int(input(f"{YELLOW}[::] Please enter a number (from the above ones): "))
+    loader = instaloader.Instaloader()
     while num < 1 or num > 4:
         print(f"{RED}[!] Invalid number !")
         sleep(1)
@@ -199,12 +214,15 @@ def main():
     if num == 1:
         clear()
         print(f'{GREEN}|---------------|LOGIN|---------------|')
-        username=str(input(f"{YELLOW}[::] Please enter your username: "))
-        while checkUser(username):
-            print(f"{RED}[!] Invalid username !")
+        session_file_path=str(input(f"{YELLOW}[::] Please enter the cookie file path: "))
+        session_file_path = session_file_path.lower().strip()
+        print(f"Using session file: {session_file_path}")
+        while not is_session_file_valid(session_file_path):
+            print(f"{RED}[!] Invalid file path !")
             sleep(1)
-            username=str(input(f"{YELLOW}[::] Please enter again the username: "))
-        username = username.lower().strip()
+            session_file_path=str(input(f"{YELLOW}[::] Please enter the cookie file path again : "))
+        username = extract_text_after_session(session_file_path)
+        print("Extracted text:", username)
         while valUser(username):
                 print(f"{RED}[!] User not found !")
                 sleep(1)
@@ -220,11 +238,86 @@ def main():
                     print(f"{YELLOW}[3] Uninstall and Exit")
                     opt=int(input(f"{YELLOW}[::] Please enter again a number (from the above ones): "))
                 if opt == 1:
-                    username=str(input(f"{YELLOW}[::] Please enter the username: "))
+                    username=str(input(f"{YELLOW}[::] Please enter the username again: "))
                     while checkUser(username):
                         print(f"{RED}[!] Invalid username !")
                         sleep(1)
-                        username=str(input(f"{YELLOW}[::] Please enter again the username: "))
+                        username=str(input(f"{YELLOW}[::] Please enter the cookie file path again #####: "))
+                elif opt == 2:
+                    clear()
+                    main()
+                    return
+                else:
+                    clear()
+                    print(Uninstall())
+                    sleep(2)
+                    print(f"{YELLOW}[+] Thank you for using Tracker 😁")
+                    sleep(2)
+                    print(f"{YELLOW}[+] Until next time 👋")
+                    sleep(1)
+                    quit(0)
+        print(f"Using session file: {session_file_path}")  # Debug print
+
+        try: 
+            with open(session_file_path, 'rb') as sessionfile:
+                loader.context.load_session_from_file(username, sessionfile)
+                print("Session loaded successfully")
+        except instaloader.exceptions.ConnectionException as ex:
+            print(f"Login Error: {ex}")
+            return 
+        profile = None  # Initialize profile to None
+    
+        try:
+            # Attempt to get the profile
+            profile = instaloader.Profile.from_username(loader.context, username)
+        except instaloader.ProfileNotExistsException:
+            print("Profile not found")
+    
+        # Print profile information if available
+        if profile:
+            print('User ID:', profile.userid)
+            print('Full Name:', profile.full_name)
+
+            
+            print(f"{GREEN}[✓] Login successfull !")
+            sleep(1)
+            print(f"{YELLOW}[1] Track followers")
+            print(f"{YELLOW}[2] Track followees")
+            print(f"{YELLOW}[3] Track both")
+            number=int(input(f"{YELLOW}[::] Please enter a number (from the above ones): "))
+            while number < 1 or number > 3:
+                print(f"{RED}[!] Invalid number !")
+                sleep(1)
+                print(f"{YELLOW}[1] Track followers")
+                print(f"{YELLOW}[2] Track followees")
+                print(f"{YELLOW}[3] Track both")
+                number=int(input(f"{YELLOW}[::] Please enter a number (from the above ones): "))
+            user=str(input(f"{YELLOW}[::] Please enter the username of the target user: "))
+            while checkUser(user):
+                print(f"{RED}[!] Invalid username !")
+                sleep(1)
+                user=str(input(f"{YELLOW}[::] Please enter again the username of the target user: "))
+            user = user.lower().strip()
+            while valUser(user):
+                print(f"{RED}[!] User not found !")
+                sleep(1)
+                print(f"{YELLOW}[1] Try with another username")
+                print(f"{YELLOW}[2] Return to menu")
+                print(f"{YELLOW}[3] Uninstall and Exit")
+                opt=int(input(f"{YELLOW}[::] Please enter a number (from the above ones): "))
+                while opt < 1 or opt > 3:
+                    print(f"{RED}[!] Invalid number !")
+                    sleep(1)
+                    print(f"{YELLOW}[1] Try with another username")
+                    print(f"{YELLOW}[2] Return to menu")
+                    print(f"{YELLOW}[3] Uninstall and Exit")
+                    opt=int(input(f"{YELLOW}[::] Please enter again a number (from the above ones): "))
+                if opt == 1:
+                    user=str(input(f"{YELLOW}[::] Please enter the username: "))
+                    while checkUser(user):
+                        print(f"{RED}[!] Invalid username !")
+                        sleep(1)
+                        user=str(input(f"{YELLOW}[::] Please enter again the username: "))
                 elif opt == 2:
                     clear()
                     main()
@@ -237,140 +330,74 @@ def main():
                     print(f"{YELLOW}[+] Until next time 👋")
                     sleep(1)
                     quit(0)
-        loader = instaloader.Instaloader()
-        password=str(input(f"{YELLOW}[::] Please enter your password: "))
-        while password in ['', ' ', 'None']:
-            print(f"{RED}[!] This field can't be blank !")
-            sleep(1)
-            password=str(input(f"{YELLOW}[::] Please enter again your password: "))
-        print(f'{GREEN}|-----------------------------------|')
-        try:
-            loader.login(username,password)
-        except ConnectionException as ex:
-            print(f"{RED}[!] Login Error !")
-            sleep(1)
-            print(f"{YELLOW}[*] Error message ==> {ex}")
-            sleep(2)
-            print(f"{YELLOW}[+] Exiting...")
-            quit(0)
-        print(f"{GREEN}[✓] Login successfull !")
-        sleep(1)
-        print(f"{YELLOW}[1] Track followers")
-        print(f"{YELLOW}[2] Track followees")
-        print(f"{YELLOW}[3] Track both")
-        number=int(input(f"{YELLOW}[::] Please enter a number (from the above ones): "))
-        while number < 1 or number > 3:
-            print(f"{RED}[!] Invalid number !")
-            sleep(1)
-            print(f"{YELLOW}[1] Track followers")
-            print(f"{YELLOW}[2] Track followees")
-            print(f"{YELLOW}[3] Track both")
-            number=int(input(f"{YELLOW}[::] Please enter a number (from the above ones): "))
-        user=str(input(f"{YELLOW}[::] Please enter the username of the target user: "))
-        while checkUser(user):
-            print(f"{RED}[!] Invalid username !")
-            sleep(1)
-            user=str(input(f"{YELLOW}[::] Please enter again the username of the target user: "))
-        user = user.lower().strip()
-        while valUser(user):
-            print(f"{RED}[!] User not found !")
-            sleep(1)
-            print(f"{YELLOW}[1] Try with another username")
-            print(f"{YELLOW}[2] Return to menu")
-            print(f"{YELLOW}[3] Uninstall and Exit")
-            opt=int(input(f"{YELLOW}[::] Please enter a number (from the above ones): "))
-            while opt < 1 or opt > 3:
-                print(f"{RED}[!] Invalid number !")
-                sleep(1)
-                print(f"{YELLOW}[1] Try with another username")
-                print(f"{YELLOW}[2] Return to menu")
-                print(f"{YELLOW}[3] Uninstall and Exit")
-                opt=int(input(f"{YELLOW}[::] Please enter again a number (from the above ones): "))
-            if opt == 1:
-                user=str(input(f"{YELLOW}[::] Please enter the username: "))
-                while checkUser(user):
-                    print(f"{RED}[!] Invalid username !")
-                    sleep(1)
-                    user=str(input(f"{YELLOW}[::] Please enter again the username: "))
-            elif opt == 2:
-                clear()
-                main()
-            else:
-                clear()
-                print(Uninstall())
-                sleep(2)
-                print(f"{YELLOW}[+] Thank you for using Tracker 😁")
-                sleep(2)
-                print(f"{YELLOW}[+] Until next time 👋")
-                sleep(1)
-                quit(0)
-        name = 'trackerResults.txt'
-        if number == 1:
-            profile = instaloader.Profile.from_username(loader.context, user)
-            FOLLOWERS = [follower.username for follower in profile.get_followers()]
-            FOLLOWERSAF = [follower.username for follower in profile.get_followers()]
-            while FOLLOWERS == FOLLOWERSAF:
-                print(f"{YELLOW}[+] No new additions found on: {user}")
-                sleep(1)
-                print(f"{YELLOW}[+] Sleeping for 5 minutes before checking again...")
-                sleep(300)
+            name = 'trackerResults.txt'
+            if number == 1:
+                profile = instaloader.Profile.from_username(loader.context, username)
+                #profile = instaloader.Profile.from_username(loader.context.load_session_from_file(session_file_path))
                 FOLLOWERS = [follower.username for follower in profile.get_followers()]
                 FOLLOWERSAF = [follower.username for follower in profile.get_followers()]
-            if abs(len(FOLLOWERSAF) - len(FOLLOWERS)) > 1:
-                if len(FOLLOWERS) > len(FOLLOWERSAF):
-                    print(f"{GREEN}[*] {user} removed {len(FOLLOWERS) - len(FOLLOWERSAF)} followers.")
-                    sleep(2)
-                    print(f'{YELLOW}|----------|USERNAMES|----------|')
+                while FOLLOWERS == FOLLOWERSAF:
+                    print(f"{YELLOW}[+] No new additions found on: {user}")
                     sleep(1)
-                    for follower in FOLLOWERS:
-                        if follower not in FOLLOWERSAF:
-                            print(f"{YELLOW}[⇒] Username: {follower}")
+                    print(f"{YELLOW}[+] Sleeping for 5 minutes before checking again...")
+                    sleep(300)
+                    FOLLOWERS = [follower.username for follower in profile.get_followers()]
+                    FOLLOWERSAF = [follower.username for follower in profile.get_followers()]
+                if abs(len(FOLLOWERSAF) - len(FOLLOWERS)) > 1:
+                    if len(FOLLOWERS) > len(FOLLOWERSAF):
+                        print(f"{GREEN}[*] {user} removed {len(FOLLOWERS) - len(FOLLOWERSAF)} followers.")
+                        sleep(2)
+                        print(f'{YELLOW}|----------|USERNAMES|----------|')
+                        sleep(1)
+                        for follower in FOLLOWERS:
+                            if follower not in FOLLOWERSAF:
+                                print(f"{YELLOW}[⇒] Username: {follower}")
+                    else:
+                        print(f"{GREEN}[*] {user} added {len(FOLLOWERSAF) - len(FOLLOWERS)} followers.")
+                        sleep(1)
+                        print(f'{YELLOW}|----------|USERNAMES|----------|')
+                        sleep(1)
+                        for follower in FOLLOWERSAF:
+                            if follower not in FOLLOWERS:
+                                print(f"{YELLOW}[⇒] Username: {follower}")
+                    sleep(4)
                 else:
-                    print(f"{GREEN}[*] {user} added {len(FOLLOWERSAF) - len(FOLLOWERS)} followers.")
-                    sleep(1)
-                    print(f'{YELLOW}|----------|USERNAMES|----------|')
-                    sleep(1)
-                    for follower in FOLLOWERSAF:
-                        if follower not in FOLLOWERS:
-                            print(f"{YELLOW}[⇒] Username: {follower}")
-                sleep(4)
-            else:
-                if len(FOLLOWERS) > len(FOLLOWERSAF):
-                    print(f"{GREEN}[*] {user} removed 1 follower.")
-                    sleep(1)
-                    print(f"{YELLOW}[+] Username: {[follower for follower in FOLLOWERS if follower not in FOLLOWERSAF][0]}")
-                else:
-                    print(f"{GREEN}[*] {user} added 1 follower.")
-                    sleep(2)
-                    print(f"{YELLOW}[+] Username: {[follower for follower in FOLLOWERSAF if follower not in FOLLOWERS][0]}")
-            sleep(2)
-            print(f"{GREEN}[+] Acceptable answers: [true/false]")
-            sleep(1)
-            kp=str(input(f"{YELLOW}[?] Keep log ? "))
-            while kp in ['None', '', ' '] or kp.lower() not in ['true', 'false']:
-                print(f"{RED}[!] Invalid answer !")
-                sleep(1)
+                    if len(FOLLOWERS) > len(FOLLOWERSAF):
+                        print(f"{GREEN}[*] {user} removed 1 follower.")
+                        sleep(1)
+                        print(f"{YELLOW}[+] Username: {[follower for follower in FOLLOWERS if follower not in FOLLOWERSAF][0]}")
+                    else:
+                        print(f"{GREEN}[*] {user} added 1 follower.")
+                        sleep(2)
+                        print(f"{YELLOW}[+] Username: {[follower for follower in FOLLOWERSAF if follower not in FOLLOWERS][0]}")
+                sleep(2)
                 print(f"{GREEN}[+] Acceptable answers: [true/false]")
                 sleep(1)
                 kp=str(input(f"{YELLOW}[?] Keep log ? "))
-            if kp.lower() == 'true':
-                with open(name, 'w', encoding='utf8') as f:
-                    if len(FOLLOWERS) > len(FOLLOWERSAF):
-                        for i in range(len(FOLLOWERS)):
-                            if FOLLOWERS[i] not in FOLLOWERSAF:
-                                f.write(f'{i+1}) {FOLLOWERS[i]}')
-                    else:
-                        for i in range(len(FOLLOWERSAF)):
-                            if FOLLOWERSAF[i] not in FOLLOWERS:
-                                f.write(f'{i+1}) {FOLLOWERSAF[i]}')
-                print(f"{GREEN}[✓] Successfully saved log !")
-                sleep(2)
-                print(f"{YELLOW}[↪] Log file name: {name}")
-                print(f"{YELLOW}[↪] Location: {fpath(name)}")
-                print(f"{YELLOW}[↪] File size: {os.stat(fpath(name)).st_size} bytes")
-                sleep(3)
+                while kp in ['None', '', ' '] or kp.lower() not in ['true', 'false']:
+                    print(f"{RED}[!] Invalid answer !")
+                    sleep(1)
+                    print(f"{GREEN}[+] Acceptable answers: [true/false]")
+                    sleep(1)
+                    kp=str(input(f"{YELLOW}[?] Keep log ? "))
+                if kp.lower() == 'true':
+                    with open(name, 'w', encoding='utf8') as f:
+                        if len(FOLLOWERS) > len(FOLLOWERSAF):
+                            for i in range(len(FOLLOWERS)):
+                                if FOLLOWERS[i] not in FOLLOWERSAF:
+                                    f.write(f'{i+1}) {FOLLOWERS[i]}')
+                        else:
+                            for i in range(len(FOLLOWERSAF)):
+                                if FOLLOWERSAF[i] not in FOLLOWERS:
+                                    f.write(f'{i+1}) {FOLLOWERSAF[i]}')
+                    print(f"{GREEN}[✓] Successfully saved log !")
+                    sleep(2)
+                    print(f"{YELLOW}[↪] Log file name: {name}")
+                    print(f"{YELLOW}[↪] Location: {fpath(name)}")
+                    print(f"{YELLOW}[↪] File size: {os.stat(fpath(name)).st_size} bytes")
+                    sleep(3)
         elif number == 2:
-            profile = instaloader.Profile.from_username(loader.context, user)
+            profile = instaloader.Profile.from_username(loader.context, username)
             FOLLOWEES = [followee.username for followee in profile.get_followees()]
             FOLLOWEESAF = [followee.username for followee in profile.get_followees()]
             while FOLLOWEES == FOLLOWEESAF:
@@ -434,7 +461,7 @@ def main():
                 print(f"{YELLOW}[↪] File size: {os.stat(fpath(name)).st_size} bytes")
                 sleep(3)
         else:
-            profile = instaloader.Profile.from_username(loader.context, user)
+            profile = instaloader.Profile.from_username(loader.context, username)
             FOLLOWERS = [follower.username for follower in profile.get_followers()]
             FOLLOWERSAF = [follower.username for follower in profile.get_followers()]
             FOLLOWEES = [followee.username for followee in profile.get_followees()]
