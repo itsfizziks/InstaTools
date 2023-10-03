@@ -1,4 +1,5 @@
 ---DISCLAIMER---
+
 1-Download this script
 
 2-Login to Instagram in Firefox
